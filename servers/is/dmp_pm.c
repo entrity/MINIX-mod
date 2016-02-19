@@ -36,6 +36,11 @@ PRIVATE char *flags_str(int flags)
 	return str;
 }
 
+PUBLIC void sends_matrix_dmp()
+{
+  printf("Rock yeah!\n");
+}
+
 PUBLIC void mproc_dmp()
 {
   struct mproc *mp;
