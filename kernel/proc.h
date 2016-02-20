@@ -106,5 +106,6 @@ EXTERN struct proc proc[NR_TASKS + NR_PROCS];	/* process table */
 EXTERN struct proc *pproc_addr[NR_TASKS + NR_PROCS];
 EXTERN struct proc *rdy_head[NR_SCHED_QUEUES]; /* ptrs to ready list headers */
 EXTERN struct proc *rdy_tail[NR_SCHED_QUEUES]; /* ptrs to ready list tails */
+EXTERN int sends_matrix[NR_TASKS + NR_PROCS][NR_TASKS + NR_PROCS];
 
 #endif /* PROC_H */

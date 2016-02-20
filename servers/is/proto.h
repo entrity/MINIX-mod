@@ -19,11 +19,11 @@ _PROTOTYPE( void sched_dmp, (void)					);
 _PROTOTYPE( void monparams_dmp, (void)					);
 _PROTOTYPE( void kenv_dmp, (void)					);
 _PROTOTYPE( void timing_dmp, (void)					);
+_PROTOTYPE( void sends_matrix_dmp, (void)				);
 
 /* dmp_pm.c */
 _PROTOTYPE( void mproc_dmp, (void)					);
 _PROTOTYPE( void sigaction_dmp, (void)					);
-_PROTOTYPE( void sends_matrix_dmp, (void)				);
 
 /* dmp_fs.c */
 _PROTOTYPE( void dtab_dmp, (void)					);

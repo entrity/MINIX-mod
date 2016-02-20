@@ -242,6 +242,8 @@ unsigned flags;				/* system call flags */
   } else {
 	return(ENOTREADY);
   }
+  /* increment counter in sends_matrix */
+/*  sends_matrix[dst][caller_ptr->p_nr] ++;*/
   return(OK);
 }
 

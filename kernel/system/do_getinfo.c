@@ -128,6 +128,11 @@ register message *m_ptr;	/* pointer to request message */
     	src_phys = vir2phys(&bios_buf_vir);
     	break;
 
+    case GET_SENDSMATRIX:
+        length = sizeof(int) * (NR_PROCS + NR_TASKS) * (NR_PROCS + NR_TASKS);
+        src_phys = vir2phys(sends_matrix);
+        break;
+
     default:
         return(EINVAL);
   }

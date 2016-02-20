@@ -113,6 +113,7 @@ _PROTOTYPE(int sys_segctl, (int *index, u16_t *seg, vir_bytes *off,
 #define sys_getlocktimings(dst)	sys_getinfo(GET_LOCKTIMING, dst, 0,0,0)
 #define sys_getbiosbuffer(virp, sizep) sys_getinfo(GET_BIOSBUFFER, virp, \
 	sizeof(*virp), sizep, sizeof(*sizep))
+#define sys_getsendsmatrix(dst)	sys_getinfo(GET_SENDSMATRIX, dst, 0,0,0)
 _PROTOTYPE(int sys_getinfo, (int request, void *val_ptr, int val_len,
 				 void *val_ptr2, int val_len2)		);
 

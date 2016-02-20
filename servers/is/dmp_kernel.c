@@ -26,6 +26,92 @@ FORWARD _PROTOTYPE( char *p_rts_flags_str, (int flags)		);
 PUBLIC struct proc proc[NR_TASKS + NR_PROCS];
 PUBLIC struct priv priv[NR_SYS_PROCS];
 PUBLIC struct boot_image image[NR_BOOT_PROCS];
+PUBLIC int sends_matrix[NR_TASKS + NR_PROCS][NR_TASKS + NR_PROCS];
+
+
+/*===========================================================================*
+ *        sends_matrix_dmp        *
+ *===========================================================================*/
+PUBLIC void sends_matrix_dmp()
+{
+  static int riter = 0;
+  int s,r,c,n = 0,fromstart;
+  FILE * fp;
+  char stats[NR_TASKS + NR_PROCS] = {0};
+  fromstart = 0 == riter;
+  printf("Rock yeah!\n");
+  /* First obtain a fresh copy of the current process table. */
+  if ((r = sys_getproctab(proc)) != OK) {
+      report("IS","warning: couldn't get copy of process table", r);
+      return;
+  }
+  /* First obtain a fresh copy of the current sends matrix. */
+  if ((r = sys_getsendsmatrix(sends_matrix)) != OK) {
+      report("IS","warning: couldn't get copy of sends matrix", r);
+      return;
+  }
+
+
+sends_matrix[5][12] = 32;
+
+
+
+  /* Find nonempty rows and cols */
+  if (fromstart) {
+    for (r = 0; r < NR_TASKS + NR_PROCS; r++) {
+      for (c = 0; c < NR_TASKS + NR_PROCS; c++) {
+        if (sends_matrix[r][c]) {
+          stats[r] = 1;
+          stats[c] = 1;
+        }
+      }
+    }
+  }
+  /* Print header row */
+  for (c = 0; c < NR_TASKS + NR_PROCS; c++) {
+    if (stats[c]) {
+      printf("%4d", proc_nr(&proc[c]));
+    }
+  }
+  printf("\n");
+  /* Print data rows */
+  for (; riter < NR_TASKS + NR_PROCS; riter++) {
+    if (0 == stats[riter]) continue;
+    if (++n > 10) break;
+    printf("%2d|", proc_nr(&proc[riter]));
+    for (c = 0; c < NR_TASKS + NR_PROCS; c++) {
+      if (0 == stats[c]) continue;
+      printf("%4d", sends_matrix[riter][c]);
+    }
+    printf("\n");
+  }
+
+  /* Print to file */
+  if (fromstart || 1) {
+    printf("print fo file...\n");
+    /* Print header row */
+    if ((fp = fopen("/tmp/sends_matrix.txt", "w"))) {
+      for (c = 0; c < NR_TASKS + NR_PROCS; c++)
+        fprintf(fp, "%5d", proc_nr(&proc[c]));
+      fprintf(fp, "\n");
+      /* Print data rows */
+      for (r = 0; r < NR_TASKS + NR_PROCS; r++) {
+        if (0 == stats[r]) continue;
+        fprintf(fp, "%2d|", proc_nr(&proc[r]));
+        for (c = 0; c < NR_TASKS + NR_PROCS; c++) {
+          if (0 == stats[c]) continue;
+          fprintf(fp, "%5d", sends_matrix[r][c]);
+        }
+        fprintf(fp, "\n");
+      }
+      close(fp);
+    } else {
+      printf("failed to open file %d\n", errno);
+    }
+  }
+
+  if (n == NR_TASKS + NR_PROCS) n = 0; else printf("--more--");
+}
 
 /*===========================================================================*
  *				timing_dmp				     *
