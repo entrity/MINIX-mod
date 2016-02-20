@@ -1,0 +1,1 @@
+sudo mount '/home/markham/VirtualBox VMs/MinShare/floppy.img' /media/markham/floppy/ -o uid=markham,gid=markham
