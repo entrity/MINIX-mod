@@ -210,6 +210,7 @@ unsigned flags;				/* system call flags */
   register struct proc *dst_ptr = proc_addr(dst);
   register struct proc **xpp;
   register struct proc *xp;
+  int row,col;
 
   /* Check for deadlock by 'caller_ptr' and 'dst' sending to each other. */
   xp = dst_ptr;
@@ -243,8 +244,19 @@ unsigned flags;				/* system call flags */
 	return(ENOTREADY);
   }
   /* increment counter in sends_matrix */
-  sends_matrix[dst][1] ++;
-  /*sends_matrix[dst][caller_ptr->p_nr] ++;*/
+  #define IDXPROC(val) (val + NR_TASKS)
+  row=IDXPROC(dst);
+  col=IDXPROC(caller_ptr->p_nr);
+  if (isokprocn(col) && isokprocn(row)) {
+    sends_matrix[row][col]++;
+  }
+  else {
+    sends_matrix[0][3] = 911;
+    sends_matrix[1][3] = col;
+    sends_matrix[2][3] = (caller_ptr->p_nr);
+    sends_matrix[1][3] = row;
+    sends_matrix[2][3] = (dst);
+  }
   return(OK);
 }
 
