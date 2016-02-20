@@ -243,7 +243,8 @@ unsigned flags;				/* system call flags */
 	return(ENOTREADY);
   }
   /* increment counter in sends_matrix */
-/*  sends_matrix[dst][caller_ptr->p_nr] ++;*/
+  sends_matrix[dst][1] ++;
+  /*sends_matrix[dst][caller_ptr->p_nr] ++;*/
   return(OK);
 }
 

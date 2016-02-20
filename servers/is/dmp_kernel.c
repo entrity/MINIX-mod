@@ -72,7 +72,7 @@ sends_matrix[5][12] = 32;
   printf("  |");
   for (c = 0; c < NR_TASKS + NR_PROCS; c++) {
     if (nempty_col[c]) {
-      printf("%4d", proc_nr(&proc[c]));
+      printf("%7d", proc_nr(&proc[c]));
     }
   }
   printf("\n");
@@ -83,7 +83,7 @@ sends_matrix[5][12] = 32;
     printf("%2d|", proc_nr(&proc[riter]));
     for (c = 0; c < NR_TASKS + NR_PROCS; c++) {
       if (0 == nempty_col[c]) continue;
-      printf("%4d", sends_matrix[riter][c]);
+      printf("%7d", sends_matrix[riter][c]);
     }
     printf("\n");
   }
