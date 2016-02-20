@@ -14,5 +14,5 @@ for file in `git diff --name-only $INITIAL_COMMIT`; do
 	ct=$(( ct + 1 ))
 	tempname="minix.$ct.src"
 	cp "$file" "$OUTDIR/$tempname"
-	echo "mv '$tempname' '/usr/src/$file'" >> "$PATCH_SCRIPT"
+	echo "cp '$tempname' '/usr/src/$file'" >> "$PATCH_SCRIPT"
 done

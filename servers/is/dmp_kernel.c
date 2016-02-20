@@ -37,7 +37,8 @@ PUBLIC void sends_matrix_dmp()
   static int riter = 0;
   int s,r,c,n = 0,fromstart;
   FILE * fp;
-  char stats[NR_TASKS + NR_PROCS] = {0};
+  char nempty_row[NR_TASKS + NR_PROCS] = {0};
+  char nempty_col[NR_TASKS + NR_PROCS] = {0};
   fromstart = 0 == riter;
   printf("Rock yeah!\n");
   /* First obtain a fresh copy of the current process table. */
@@ -61,26 +62,27 @@ sends_matrix[5][12] = 32;
     for (r = 0; r < NR_TASKS + NR_PROCS; r++) {
       for (c = 0; c < NR_TASKS + NR_PROCS; c++) {
         if (sends_matrix[r][c]) {
-          stats[r] = 1;
-          stats[c] = 1;
+          nempty_row[r] = 1;
+          nempty_col[c] = 1;
         }
       }
     }
   }
   /* Print header row */
+  printf("  |");
   for (c = 0; c < NR_TASKS + NR_PROCS; c++) {
-    if (stats[c]) {
+    if (nempty_col[c]) {
       printf("%4d", proc_nr(&proc[c]));
     }
   }
   printf("\n");
   /* Print data rows */
   for (; riter < NR_TASKS + NR_PROCS; riter++) {
-    if (0 == stats[riter]) continue;
+    if (0 == nempty_row[riter]) continue;
     if (++n > 10) break;
     printf("%2d|", proc_nr(&proc[riter]));
     for (c = 0; c < NR_TASKS + NR_PROCS; c++) {
-      if (0 == stats[c]) continue;
+      if (0 == nempty_col[c]) continue;
       printf("%4d", sends_matrix[riter][c]);
     }
     printf("\n");
@@ -88,29 +90,30 @@ sends_matrix[5][12] = 32;
 
   /* Print to file */
   if (fromstart || 1) {
-    printf("print fo file...\n");
     /* Print header row */
     if ((fp = fopen("/tmp/sends_matrix.txt", "w"))) {
+      fprintf(fp, "  |");
       for (c = 0; c < NR_TASKS + NR_PROCS; c++)
-        fprintf(fp, "%5d", proc_nr(&proc[c]));
+        if (nempty_col[c])
+          fprintf(fp, "%5d", proc_nr(&proc[c]));
       fprintf(fp, "\n");
       /* Print data rows */
       for (r = 0; r < NR_TASKS + NR_PROCS; r++) {
-        if (0 == stats[r]) continue;
+        if (0 == nempty_row[r]) continue;
         fprintf(fp, "%2d|", proc_nr(&proc[r]));
         for (c = 0; c < NR_TASKS + NR_PROCS; c++) {
-          if (0 == stats[c]) continue;
+          if (0 == nempty_col[c]) continue;
           fprintf(fp, "%5d", sends_matrix[r][c]);
         }
         fprintf(fp, "\n");
       }
-      close(fp);
+      fclose(fp);
     } else {
       printf("failed to open file %d\n", errno);
     }
   }
 
-  if (n == NR_TASKS + NR_PROCS) n = 0; else printf("--more--");
+  if (riter >= NR_TASKS + NR_PROCS) n = 0; else printf("--more--\r");
 }
 
 /*===========================================================================*
