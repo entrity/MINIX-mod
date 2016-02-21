@@ -20,6 +20,7 @@ _PROTOTYPE( void monparams_dmp, (void)					);
 _PROTOTYPE( void kenv_dmp, (void)					);
 _PROTOTYPE( void timing_dmp, (void)					);
 _PROTOTYPE( void sends_matrix_dmp, (void)				);
+_PROTOTYPE( void sys_calls_counts_dmp, (void)				);
 
 /* dmp_pm.c */
 _PROTOTYPE( void mproc_dmp, (void)					);

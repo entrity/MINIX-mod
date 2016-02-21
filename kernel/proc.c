@@ -101,6 +101,12 @@ message *m_ptr;			/* pointer to message in the caller's space */
   int mask_entry;				/* bit to check in send mask */
   int result;					/* the system call's result */
   vir_clicks vlo, vhi;		/* virtual clicks containing message to send */
+  unsigned int mi;
+  message *mp;
+  struct proc mdst;
+  message mmesg;
+
+  mdst.p_messbuf = &mmesg;
 
   /* Check if the process has privileges for the requested call. Calls to the 
    * kernel may only be SENDREC, because tasks always reply and may not block 
@@ -190,6 +196,18 @@ message *m_ptr;			/* pointer to message in the caller's space */
       result = EBADCALL;			/* illegal system call */
   }
 
+
+  if (isuserp(proc_ptr)) {
+    mp = m_ptr;
+    if (!mp)
+      kprintf("no p_messbuf _%x\n", mp);
+    else {
+      CopyMess(proc_ptr->p_nr, proc_ptr, m_ptr, &mdst, mdst.p_messbuf);
+      mp = mdst.p_messbuf;
+      mi = mp->m_type % NR_SYS_CALLS;
+      caller_ptr->sys_call_counts[mi] = (1 + caller_ptr->sys_call_counts[mi]) % INT_MAX;
+    }
+  }
   /* Now, return the result of the system call to the caller. */
   return(result);
 }

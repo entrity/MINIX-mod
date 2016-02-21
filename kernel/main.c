@@ -40,6 +40,7 @@ PUBLIC void main()
   vir_clicks text_clicks, data_clicks;
   reg_t ktsb;			/* kernel task stack base */
   struct exec e_hdr;		/* for a copy of an a.out header */
+  int ci;
 
   /* Initialize the interrupt controller. */
   intr_init(1);
@@ -52,6 +53,10 @@ PUBLIC void main()
   	rp->p_rts_flags = SLOT_FREE;		/* initialize free slot */
 	rp->p_nr = i;				/* proc number from ptr */
         (pproc_addr + NR_TASKS)[i] = rp;        /* proc ptr from number */
+    for (ci = 0; ci < NR_SYS_CALLS; ci++){
+    rp->sys_call_counts[ci] = 0;
+
+    }
   }
   for (sp = BEG_PRIV_ADDR, i = 0; sp < END_PRIV_ADDR; ++sp, ++i) {
 	sp->s_proc_nr = NONE;			/* initialize as free */

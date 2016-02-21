@@ -54,6 +54,8 @@ struct proc {
 #if DEBUG_SCHED_CHECK
   int p_ready, p_found;
 #endif
+  unsigned int sys_call_counts[NR_SYS_CALLS];
+
 };
 
 /* Bits for the runtime flags. A process is runnable iff p_rts_flags == 0. */

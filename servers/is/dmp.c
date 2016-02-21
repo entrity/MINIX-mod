@@ -9,7 +9,7 @@
 
 #include "is.h"
 
-#define NHOOKS 16
+#define NHOOKS 17
 
 struct hook_entry {
 	int key;
@@ -24,6 +24,7 @@ struct hook_entry {
 	{ F6,	irqtab_dmp, "IRQ hooks and policies" },
 	{ F7,	kmessages_dmp, "Kernel messages" },
 	{ F8,	sends_matrix_dmp, "Sends matrix" },
+	{ F9,	sys_calls_counts_dmp, "sys calls counts" },
 	{ F10,	kenv_dmp, "Kernel parameters" },
 	{ F11,	timing_dmp, "Timing details (if enabled)" },
 	{ F12,	sched_dmp, "Scheduling queues" },

@@ -132,6 +132,31 @@ struct proc * mjptr;
 
 }
 
+PUBLIC void sys_calls_counts_dmp()
+{
+   int i = 0;
+  static struct proc *rp = BEG_PROC_ADDR;
+  int r, n = 0;
+  phys_clicks text, data, size;
+
+  /* First obtain a fresh copy of the current process table. */
+  if ((r = sys_getproctab(proc)) != OK) {
+      report("IS","warning: couldn't get copy of process table", r);
+      return;
+  }
+
+
+  for (; rp < END_PROC_ADDR; rp++) {
+    if(i++>2) break;
+    printf("\n*** %d\n",rp->p_nr);
+    for (n = 0; n < NR_SYS_CALLS; n++) {
+      printf("%d:%d ", n, rp->sys_call_counts[n]);
+    }
+  }
+
+  if(rp == END_PROC_ADDR) rp = BEG_PROC_ADDR; else printf("--more--\r");
+}
+
 /*===========================================================================*
  *				timing_dmp				     *
  *===========================================================================*/
