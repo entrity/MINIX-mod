@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 IFS=$'\n'
-OUTDIR=/media/markham/floppy/floppy
+OUTDIR=./floppy
 PATCH_SCRIPT="$OUTDIR/patch.sh"
 INITIAL_COMMIT=bc9bcff4c56599645728fa4da9895846eeb37301
 ct=0
@@ -10,7 +10,7 @@ mkdir -p $OUTDIR
 
 find "$OUTDIR" -name \*.src -exec rm {} \;
 
-for file in `git diff --name-only $INITIAL_COMMIT`; do
+for file in `git diff --name-only $INITIAL_COMMIT -- kernel include boot commands drivers etc lib servers tools`; do
 	ct=$(( ct + 1 ))
 	tempname="$ct.` basename "$file"`.src"
 	cp "$file" "$OUTDIR/$tempname"
