@@ -12,7 +12,7 @@ find "$OUTDIR" -name \*.src -exec rm {} \;
 
 for file in `git diff --name-only $INITIAL_COMMIT`; do
 	ct=$(( ct + 1 ))
-	tempname="minix.$ct.src"
+	tempname="$ct.` basename "$file"`.src"
 	cp "$file" "$OUTDIR/$tempname"
 	echo "cp '$tempname' '/usr/src/$file'" >> "$PATCH_SCRIPT"
 done
