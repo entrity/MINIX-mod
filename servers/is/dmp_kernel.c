@@ -81,11 +81,11 @@ struct proc * mjptr;
       printf("%7d", c - NR_TASKS);
     }
   }
-  printf("\n");
+  printf("\n\n");
   /* Print data rows */
   for (; riter < NR_TASKS + NR_PROCS; riter++) {
     if (0 == nempty_row[riter]) continue;
-    if (++n > 10) {
+    if (++n > 8) {
       break;
     }
     printf("%2d|", riter - NR_TASKS);
