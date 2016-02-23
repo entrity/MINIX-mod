@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 IFS=$'\n'
-OUTDIR=./floppy
+OUTDIR=./floppy/floppy
 PATCH_SCRIPT="$OUTDIR/patch.sh"
 INITIAL_COMMIT=bc9bcff4c56599645728fa4da9895846eeb37301
 ct=0
@@ -16,3 +16,6 @@ for file in `git diff --name-only $INITIAL_COMMIT -- kernel include boot command
 	cp "$file" "$OUTDIR/$tempname"
 	echo "cp '$tempname' '/usr/src/$file'" >> "$PATCH_SCRIPT"
 done
+
+rm -rf $OUTDIR/.Trash*
+rm -rf $OUTDIR/../.Trash*
