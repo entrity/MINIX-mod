@@ -99,6 +99,10 @@ struct proc {
 #define isuserp(p)        isusern((p)->p_nr)
 #define isusern(n)        ((n) >= 0)
 
+#define ISNP(pp) ((priv(pp)->s_flags & BILLABLE) && isuserp(pp) && !(priv(pp)->s_flags & SYS_PROC))
+#define PTIME(pp) (pp->p_user_time + pp->p_sys_time)
+
+
 /* The process table and pointers to process table slots. The pointers allow
  * faster access because now a process entry can be found by indexing the
  * pproc_addr array, while accessing an element i requires a multiplication
