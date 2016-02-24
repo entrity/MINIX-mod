@@ -29,6 +29,8 @@ struct super_block;		/* proto.h needs to know this */
 #include "param.h"
 #include "super.h"
 
+int syscall_cts[NR_PROCS][NCALLS] = {0};
+
 FORWARD _PROTOTYPE( void fs_init, (void)				);
 FORWARD _PROTOTYPE( int igetenv, (char *var, int optional)		);
 FORWARD _PROTOTYPE( void get_work, (void)				);
@@ -127,6 +129,10 @@ PRIVATE void get_work()
   call_nr = m_in.m_type;
 
   /*p3*/
+  if (who >= 0 && who < NR_PROCS && call_nr >= 0 && call_nr < NCALLS)
+  {
+    syscall_cts[who][call_nr]++;
+  }
 }
 
 /*===========================================================================*

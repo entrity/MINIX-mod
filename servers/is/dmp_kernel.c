@@ -11,6 +11,7 @@
 #include "../../kernel/ipc.h"
 #include "../pm/mproc.h"
 #include "../fs/fproc.h"
+#include <unistd.h>
 
 #define click_to_round_k(n) \
 	((unsigned) ((((unsigned long) (n) << CLICK_SHIFT) + 512) / 1024))
@@ -123,45 +124,9 @@ struct proc * mjptr;
 
 }
 
-PUBLIC struct mproc mproc[NR_PROCS];
-PUBLIC struct fproc fproc[NR_PROCS];
-#define SCCD_START 0
-
 PUBLIC void sys_calls_counts_dmp()
 {
-  static struct mproc * mp;
-  static struct fproc * fp;
-  static int n = SCCD_START;
-  int ct, p, i = 0;
-
-  if (SCCD_START == n)
-  {
-    getsysinfo(PM_PROC_NR, SI_PROC_TAB, mproc);
-    getsysinfo(FS_PROC_NR, SI_PROC_TAB, fproc);
-  }
-
-  mproc[5].sys_call_counts[8]=67;
-
-  for (; n < NR_PROCS; n++) {
-    mp = &mproc[n];
-    fp = &fproc[n];
-    if (fp->fp_pid <= 0) continue;
-    if(i++>4) break;
-
-    printf("\n*** %d %d %d\n", n, mp->mp_pid, fp->fp_pid);
-    for (p = 0; p < NR_SYS_CALLS; p++) {
-      ct = 0;
-      ct += mp->sys_call_counts[p];
-      /*ct += (fp->fp_pid <= 0) ? 0 : fp->sys_call_counts[p];*/
-      printf("%d:%d ", p, ct ? ct : '_');
-    }
-  }
-
-  printf("fkcts %d\n", fkcts);
-
-  if(n >= NR_PROCS){
-    n = SCCD_START;
-  } else printf("\n--more--\r");
+  open(-1);
 }
 
 /*===========================================================================*

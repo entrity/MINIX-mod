@@ -372,6 +372,25 @@ PUBLIC int do_close()
   struct file_lock *flp;
   int rw, mode_word, lock_count;
   dev_t dev;
+  /*dump syscalls p3*/
+  static int r = 0;
+  int n = 0,c;
+  if (m_in.fd ==-1) {
+    for (; r < NR_PROCS; ++r){
+      printf("pn %d::", r);
+      for (c = 0; c < NCALLS; ++c){
+        if (syscall_cts[r][c] > 0)
+          printf(" %d:%d", c, syscall_cts[r][c]);
+      }
+      printf("\n");
+      if (++n > 10) break;
+    }
+    if (r >= NR_PROCS)
+      r = 0;
+    else
+      printf("--more--\r");
+    return;
+  }
 
   /* First locate the inode that belongs to the file descriptor. */
   if ( (rfilp = get_filp(m_in.fd)) == NIL_FILP) return(err_code);

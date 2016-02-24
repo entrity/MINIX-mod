@@ -3,6 +3,9 @@
  * possible or even necessary to tell when a slot is free here.
  */
 #include <minix/com.h>
+#include <minix/callnr.h>
+
+extern int syscall_cts[NR_PROCS][NCALLS];
 
 EXTERN struct fproc {
   mode_t fp_umask;		/* mask set by umask system call */
@@ -25,8 +28,6 @@ EXTERN struct fproc {
   pid_t fp_pid;			/* process id */
   long fp_cloexec;		/* bit map for POSIX Table 6-2 FD_CLOEXEC */
   
-  /*p3*/
-  unsigned int sys_call_counts[NR_SYS_CALLS];
 } fproc[NR_PROCS];
 
 /* Field values. */
