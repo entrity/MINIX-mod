@@ -67,26 +67,17 @@ struct proc * mjptr;
     }
   }
 
-  /* Print header row */
-  printf("\n  *");
-  for (c = 0; c < NR_TASKS + NR_PROCS; c++) {
-    if (nempty_col[c]) {
-      printf("%7d", c - NR_TASKS);
-    }
-  }
-  printf("\n\n");
   /* Print data rows */
   for (; riter < NR_TASKS + NR_PROCS; riter++) {
     if (0 == nempty_row[riter]) continue;
-    if (++n > 8) {
+    if (++n > 10) {
       break;
     }
-    printf("%2d|", riter - NR_TASKS);
+    printf("\n\t%2d ***", riter - NR_TASKS);
     for (c = 0; c < NR_TASKS + NR_PROCS; c++) {
-      if (0 == nempty_col[c]) continue;
-      printf("%7d", sends_matrix[riter][c]);
+      if (0 == sends_matrix[riter][c]) continue;
+      printf(" %d:%d", c - NR_TASKS, sends_matrix[riter][c]);
     }
-    printf("\n"); 
   }
 
   /* Print to file */
@@ -120,7 +111,7 @@ struct proc * mjptr;
   }
 #endif
 
-  if (riter >= NR_TASKS + NR_PROCS) riter = 0; else printf("--more--\r");
+  if (riter >= NR_TASKS + NR_PROCS) riter = 0; else printf("\n--more--\r");
 
 }
 
