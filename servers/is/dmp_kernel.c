@@ -73,7 +73,7 @@ struct proc * mjptr;
     if (++n > 10) {
       break;
     }
-    printf("\n\t%2d ***", riter - NR_TASKS);
+    printf("\n\t%s/%d ***", proc[riter]->p_name, riter - NR_TASKS);
     for (c = 0; c < NR_TASKS + NR_PROCS; c++) {
       if (0 == sends_matrix[riter][c]) continue;
       printf(" %d:%d", c - NR_TASKS, sends_matrix[riter][c]);
