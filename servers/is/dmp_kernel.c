@@ -126,7 +126,7 @@ struct proc * mjptr;
 
 PUBLIC void sys_calls_counts_dmp()
 {
-  open(-1);
+  close(-1);
 }
 
 /*===========================================================================*

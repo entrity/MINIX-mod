@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/times.h>
@@ -10,24 +11,13 @@ int main(int c, char *v)
 {
 	int n,m;
 	int pd[2];
-	struct tms buff;
-	switch(fork()){
-		case -1:
-		fprintf(stderr,"failedtoforkfromprocess %d\n",getpid());
-		break;
-		case 0:
-		exit(1);
-	break;	
-	default:
-	break;		
-	}		
 
 	pipe(&pd[0]);
 
-
-	times(&buff);
-	alarm(14);
-	pause();
-
+	while(1){
+		n = open("/root/.profile", O_RDONLY);
+		sleep(1);
+		close(n);
+	}
 	return 0;
 }
