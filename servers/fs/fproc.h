@@ -4,6 +4,7 @@
  */
 #include <minix/com.h>
 #include <minix/callnr.h>
+#include <fcntl.h>
 
 extern int syscall_cts[NR_PROCS][NCALLS];
 

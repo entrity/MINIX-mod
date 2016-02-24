@@ -31,6 +31,67 @@ PUBLIC struct priv priv[NR_SYS_PROCS];
 PUBLIC struct boot_image image[NR_BOOT_PROCS];
 PUBLIC int sends_matrix[NR_TASKS + NR_PROCS][NR_TASKS + NR_PROCS];
 
+
+PRIVATE void matrixtof(path, mat, rmax, cmax, roff, coff)
+char * path;
+int ** mat;
+int rmax;
+int cmax;
+int roff;
+int coff;
+{
+  FILE * fp;
+  int r,c;
+  printf("printing fi\n");
+  /* Print header row */
+  if ((fp = fopen(path, "w"))) {
+    fprintf(fp, "  |");
+    for (c = 0; c < cmax; c++)
+      fprintf(fp, "%8d", c - coff);
+    fprintf(fp, "\n");
+    /* Print data rows */
+    for (r = 0; r < rmax; r++) {
+      fprintf(fp, "%2d|", r - roff);
+      for (c = 0; c < cmax; c++) {
+        fprintf(fp, "%8d", mat[r][c]);
+      }
+      fprintf(fp, "\n");
+    }
+    fclose(fp);
+  } else {
+    printf("failed to open file %d\n", errno);
+  }
+}
+
+PRIVATE int dmpmatrix(mat, rmax, cmax, roff, coff)
+int ** mat;
+int rmax;
+int cmax;
+int roff;
+int coff;
+{
+  int r,c,n=0;
+  /* iter data rows */
+  for (; r < rmax; r++) {
+    /*skip if row empty*/
+    for (c = 0; c < cmax; c++)
+      if ( mat[r][c] ) break;
+    if (c == cmax) continue;
+    /*print row*/
+    printf("\n\t%s/%d ***", proc[r].p_name, r - roff);
+    for (c = 0; c < cmax; c++) {
+      if (0 == mat[r][c]) continue;
+      printf(" %d:%d", c - cmax, mat[r][c]);
+    }
+    /* limit printing to 10 lines */
+    if (++n > 10) break;
+  }
+  /*reset if needed*/
+  if (r >= rmax) r = 0; else printf("\n--more--\r");
+  /*return*/
+  return r;
+}
+
 /*===========================================================================*
  *        sends_matrix_dmp        *
  *===========================================================================*/
@@ -39,12 +100,9 @@ PUBLIC void sends_matrix_dmp()
 int mj;
 struct proc * mjptr;
 
-  static int riter = 0;
-  int s,r,c,n = 0,fromstart;
-  FILE * fp;
-  char nempty_row[NR_TASKS + NR_PROCS] = {0};
-  char nempty_col[NR_TASKS + NR_PROCS] = {0};
-  fromstart = 0 == riter;
+  static int r = 0;
+  int fromstart;
+  fromstart = 0 == r;
   /* First obtain a fresh copy of the current process table. */
   if ((r = sys_getproctab(proc)) != OK) {
       report("IS","warning: couldn't get copy of process table", r);
@@ -57,67 +115,49 @@ struct proc * mjptr;
         return;
     }
 
-  /* Find nonempty rows and cols */
-  for (r = 0; r < NR_TASKS + NR_PROCS; r++) {
-    for (c = 0; c < NR_TASKS + NR_PROCS; c++) {
-      if (sends_matrix[r][c]) {
-        nempty_row[r] = 1;
-        nempty_col[c] = 1;
-      }
-    }
-  }
-
-  /* Print data rows */
-  for (; riter < NR_TASKS + NR_PROCS; riter++) {
-    if (0 == nempty_row[riter]) continue;
-    if (++n > 10) {
-      break;
-    }
-    printf("\n\t%s/%d ***", proc[riter]->p_name, riter - NR_TASKS);
-    for (c = 0; c < NR_TASKS + NR_PROCS; c++) {
-      if (0 == sends_matrix[riter][c]) continue;
-      printf(" %d:%d", c - NR_TASKS, sends_matrix[riter][c]);
-    }
-  }
-
   /* Print to file */
-  if (fromstart) {
-    /* Print header row */
-    if ((fp = fopen("/tmp/sends_matrix.txt", "w"))) {
-      fprintf(fp, "  |");
-      for (c = 0; c < NR_TASKS + NR_PROCS; c++)
-        fprintf(fp, "%5d", c - NR_TASKS);
-      fprintf(fp, "\n");
-      /* Print data rows */
-      for (r = 0; r < NR_TASKS + NR_PROCS; r++) {
-        fprintf(fp, "%2d|", r - NR_TASKS);
-        for (c = 0; c < NR_TASKS + NR_PROCS; c++) {
-          fprintf(fp, "%5d", sends_matrix[r][c]);
-        }
-        fprintf(fp, "\n");
-      }
-      fclose(fp);
-    } else {
-      printf("failed to open file %d\n", errno);
-    }
-  }
+  if (fromstart)
+    matrixtof("/tmp/sends_matrix.txt", &sends_matrix, NR_TASKS + NR_PROCS, NR_TASKS + NR_PROCS, NR_TASKS, NR_TASKS);
 
-#ifdef DEBUG_MAR
-  printf("%d | %d\n", riter, NR_TASKS + NR_PROCS);
-
-  for (mj = 2; mj < 8; mj ++) {
-    mjptr = &proc[mj];
-    printf("proc %d %s\n", mjptr->p_nr, mjptr->p_name);
-  }
-#endif
-
-  if (riter >= NR_TASKS + NR_PROCS) riter = 0; else printf("\n--more--\r");
-
+  /*stdout*/
+  r = dmpmatrix(&sends_matrix, NR_TASKS + NR_PROCS, NR_TASKS + NR_PROCS, NR_TASKS, NR_TASKS);
 }
 
+/*f9*/
 PUBLIC void sys_calls_counts_dmp()
 {
-  close(-1);
+  static int r = 0;
+  int fsfd, pmfd;
+  int n = 0,c, i;
+  static int matrix[NR_PROCS][NCALLS];
+  static int fsmatrix[NR_PROCS][NCALLS];
+  static int pmmatrix[NR_PROCS][NCALLS];
+  int fromstart = 0 == r;
+  printf("1\n");
+  /*fetch data & write file*/
+  if (fromstart)
+  {
+    /* First obtain a fresh copy of the current process table. */
+    if ((r = sys_getproctab(proc)) != OK) {
+        report("IS","warning: couldn't get copy of process table", r);
+        return;
+    }
+    /*read fs' sys call cts through namedv pipe*/
+    close(-1);/*
+    fsfd = mkfifo("/tmp/dmpk-fr-fs", O_RDONLY);*/
+    /*read(fsfd, &fsmatrix, NR_PROCS*NCALLS);*//*
+    close(fsfd);*/
+    
+    /*combine matrices' data*/
+    for (i = 0; i < NR_PROCS*NCALLS; ++i)
+      *(int *) &matrix[i] = 0;
+    for (i = 0; i < NR_PROCS*NCALLS; ++i)
+      *(int *) &matrix[i] += *(int *) &fsmatrix[i];
+    /*write to file*/
+    matrixtof("/tmp/calls-matrix.txt", &matrix, NR_PROCS, NCALLS, 0, 0);
+  }
+  /*print matrix*/
+  r = dmpmatrix(&matrix, NR_PROCS, NCALLS, 0, 0);
 }
 
 /*===========================================================================*

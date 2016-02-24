@@ -373,22 +373,12 @@ PUBLIC int do_close()
   int rw, mode_word, lock_count;
   dev_t dev;
   /*dump syscalls p3*/
-  static int r = 0;
-  int n = 0,c;
+  int fsfd;
   if (m_in.fd ==-1) {
-    for (; r < NR_PROCS; ++r){
-      printf("pn %d::", r);
-      for (c = 0; c < NCALLS; ++c){
-        if (syscall_cts[r][c] > 0)
-          printf(" %d:%d", c, syscall_cts[r][c]);
-      }
-      printf("\n");
-      if (++n > 10) break;
-    }
-    if (r >= NR_PROCS)
-      r = 0;
-    else
-      printf("--more--\r");
+    printf("f9hit\n");
+    /*fsfd = mkfifo("/tmp/dmpk-fr-fs", O_WRONLY);
+    write(fsfd, &syscall_cts, NR_PROCS*NCALLS);
+    close(fsfd);*/
     return;
   }
 
