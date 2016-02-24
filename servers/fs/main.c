@@ -125,6 +125,8 @@ PRIVATE void get_work()
   if (receive(ANY, &m_in) != OK) panic(__FILE__,"fs receive error", NO_NUM);
   who = m_in.m_source;
   call_nr = m_in.m_type;
+
+  /*p3*/
 }
 
 /*===========================================================================*

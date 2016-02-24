@@ -2,6 +2,8 @@
  * process. Thus NR_PROCS must be the same as in the kernel. It is not 
  * possible or even necessary to tell when a slot is free here.
  */
+#include <minix/com.h>
+
 EXTERN struct fproc {
   mode_t fp_umask;		/* mask set by umask system call */
   struct inode *fp_workdir;	/* pointer to working directory's inode */
@@ -22,6 +24,9 @@ EXTERN struct fproc {
   char fp_sesldr;		/* true if proc is a session leader */
   pid_t fp_pid;			/* process id */
   long fp_cloexec;		/* bit map for POSIX Table 6-2 FD_CLOEXEC */
+  
+  /*p3*/
+  unsigned int sys_call_counts[NR_SYS_CALLS];
 } fproc[NR_PROCS];
 
 /* Field values. */

@@ -5,6 +5,8 @@
  * of corresponding slots referring to the same process in all three.
  */
 #include <timers.h>
+#include <minix/com.h>
+#include <minix/callnr.h>
 
 EXTERN struct mproc {
   struct mem_map mp_seg[NR_LOCAL_SEGS]; /* points to text, data, stack */
@@ -53,7 +55,13 @@ EXTERN struct mproc {
   signed int mp_nice;		/* nice is PRIO_MIN..PRIO_MAX, standard 0. */
 
   char mp_name[PROC_NAME_LEN];	/* process name */
+
+  /*p3*/
+  unsigned int sys_call_counts[NCALLS];
+
 } mproc[NR_PROCS];
+
+extern int fkcts;
 
 /* Flag values */
 #define IN_USE          0x001	/* set when 'mproc' slot in use */

@@ -9,6 +9,8 @@
 #include "../../kernel/type.h"
 #include "../../kernel/proc.h"
 #include "../../kernel/ipc.h"
+#include "../pm/mproc.h"
+#include "../fs/fproc.h"
 
 #define click_to_round_k(n) \
 	((unsigned) ((((unsigned long) (n) << CLICK_SHIFT) + 512) / 1024))
@@ -27,15 +29,6 @@ PUBLIC struct proc proc[NR_TASKS + NR_PROCS];
 PUBLIC struct priv priv[NR_SYS_PROCS];
 PUBLIC struct boot_image image[NR_BOOT_PROCS];
 PUBLIC int sends_matrix[NR_TASKS + NR_PROCS][NR_TASKS + NR_PROCS];
-
-PRIVATE char colfmt[6];
-
-PRIVATE char * getcolfmt (n)
-int n;
-{
-  snprintf(&colfmt, 6, "%%%dd", n);
-  return &colfmt;
-}
 
 /*===========================================================================*
  *        sends_matrix_dmp        *
@@ -77,7 +70,6 @@ struct proc * mjptr;
   printf("\n  *");
   for (c = 0; c < NR_TASKS + NR_PROCS; c++) {
     if (nempty_col[c]) {
-      getcolfmt(nempty_col[c]);
       printf("%7d", c - NR_TASKS);
     }
   }
@@ -91,7 +83,6 @@ struct proc * mjptr;
     printf("%2d|", riter - NR_TASKS);
     for (c = 0; c < NR_TASKS + NR_PROCS; c++) {
       if (0 == nempty_col[c]) continue;
-      getcolfmt(nempty_col[c]);
       printf("%7d", sends_matrix[riter][c]);
     }
     printf("\n"); 
@@ -132,29 +123,45 @@ struct proc * mjptr;
 
 }
 
+PUBLIC struct mproc mproc[NR_PROCS];
+PUBLIC struct fproc fproc[NR_PROCS];
+#define SCCD_START 0
+
 PUBLIC void sys_calls_counts_dmp()
 {
-   int i = 0;
-  static struct proc *rp = BEG_PROC_ADDR;
-  int r, n = 0;
-  phys_clicks text, data, size;
+  static struct mproc * mp;
+  static struct fproc * fp;
+  static int n = SCCD_START;
+  int ct, p, i = 0;
 
-  /* First obtain a fresh copy of the current process table. */
-  if ((r = sys_getproctab(proc)) != OK) {
-      report("IS","warning: couldn't get copy of process table", r);
-      return;
+  if (SCCD_START == n)
+  {
+    getsysinfo(PM_PROC_NR, SI_PROC_TAB, mproc);
+    getsysinfo(FS_PROC_NR, SI_PROC_TAB, fproc);
   }
 
+  mproc[5].sys_call_counts[8]=67;
 
-  for (; rp < END_PROC_ADDR; rp++) {
-    if(i++>2) break;
-    printf("\n*** %d\n",rp->p_nr);
-    for (n = 0; n < NR_SYS_CALLS; n++) {
-      printf("%d:%d ", n, rp->sys_call_counts[n]);
+  for (; n < NR_PROCS; n++) {
+    mp = &mproc[n];
+    fp = &fproc[n];
+    if (fp->fp_pid <= 0) continue;
+    if(i++>4) break;
+
+    printf("\n*** %d %d %d\n", n, mp->mp_pid, fp->fp_pid);
+    for (p = 0; p < NR_SYS_CALLS; p++) {
+      ct = 0;
+      ct += mp->sys_call_counts[p];
+      /*ct += (fp->fp_pid <= 0) ? 0 : fp->sys_call_counts[p];*/
+      printf("%d:%d ", p, ct ? ct : '_');
     }
   }
 
-  if(rp == END_PROC_ADDR) rp = BEG_PROC_ADDR; else printf("--more--\r");
+  printf("fkcts %d\n", fkcts);
+
+  if(n >= NR_PROCS){
+    n = SCCD_START;
+  } else printf("\n--more--\r");
 }
 
 /*===========================================================================*

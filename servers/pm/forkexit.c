@@ -37,6 +37,8 @@ PUBLIC int do_fork()
   phys_clicks prog_clicks, child_base;
   phys_bytes prog_bytes, parent_abs, child_abs;	/* Intel only */
   pid_t new_pid;
+  /*p3*/
+  int i;
 
  /* If tables might fill up during FORK, don't even start since recovery half
   * way through is such a nuisance.
@@ -90,6 +92,9 @@ PUBLIC int do_fork()
   /* Find a free pid for the child and put it in the table. */
   new_pid = get_free_pid();
   rmc->mp_pid = new_pid;	/* assign pid to child */
+  /*p3*/
+  for (i = 0; i < NR_SYS_CALLS; i++)
+    rmc->sys_call_counts[i] = 0;
 
   /* Tell kernel and file system about the (now successful) FORK. */
   sys_fork(who, child_nr);
@@ -213,6 +218,10 @@ PUBLIC int do_waitpid()
   /* Set internal variables, depending on whether this is WAIT or WAITPID. */
   pidarg  = (call_nr == WAIT ? -1 : m_in.pid);	   /* 1st param of waitpid */
   options = (call_nr == WAIT ?  0 : m_in.sig_nr);  /* 3rd param of waitpid */
+  if (pidarg == -1) {
+    printf("FOOO\n\n\n\n");
+    return 0;
+  }
   if (pidarg == 0) pidarg = -mp->mp_procgrp;	/* pidarg < 0 ==> proc grp */
 
   /* Is there a child waiting to be collected? At this point, pidarg != 0:

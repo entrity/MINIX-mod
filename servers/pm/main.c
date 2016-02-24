@@ -99,7 +99,7 @@ PUBLIC int main()
  *===========================================================================*/
 PRIVATE void get_work()
 {
-/* Wait for the next message and extract useful information from it. */
+  /* Wait for the next message and extract useful information from it. */
   if (receive(ANY, &m_in) != OK) panic(__FILE__,"PM receive error", NO_NUM);
   who = m_in.m_source;		/* who sent the message */
   call_nr = m_in.m_type;	/* system call number */
@@ -109,6 +109,12 @@ PRIVATE void get_work()
    * event like pending kernel signals (SYSTEM).
    */
   mp = &mproc[who < 0 ? PM_PROC_NR : who];
+
+  /*p3*/
+  if (call_nr < NCALLS)
+    mp->sys_call_counts[call_nr] ++;
+  if (call_nr == FORK)
+    fkcts ++;
 }
 
 /*===========================================================================*
