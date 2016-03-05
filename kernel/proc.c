@@ -533,6 +533,7 @@ int *front;					/* return: front or back */
    * by IDLE's queue and the maximum priority of this process. Kernel task 
    * and the idle process are never changed in priority.
    */
+   /*p2: don't penalze user procs: ISNP*/
   if (penalty != 0 && ! iskernelp(rp) && ! ISNP(rp)) {
       rp->p_priority += penalty;		/* update with penalty */
       if (rp->p_priority < rp->p_max_priority)  /* check upper bound */ 
@@ -568,7 +569,7 @@ PRIVATE void pick_proc()
    */
   for (q=0; q < NR_SCHED_QUEUES; q++) {	
       if ( (rp = rdy_head[q]) != NIL_PROC) {
-        /* iterate through queue q if rp is user proc */
+        /* iterate through queue q if first entry on q is user proc; pick proc w/ least time  */
           if (ISNP(rp)) { 
             pp = rp;
             while (pp) {

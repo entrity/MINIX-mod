@@ -128,7 +128,7 @@ PRIVATE void get_work()
   who = m_in.m_source;
   call_nr = m_in.m_type;
 
-  /*p3*/
+  /*p3: increnment count fir given syscall for given proc*/
   if (who >= 0 && who < NR_PROCS && call_nr >= 0 && call_nr < NCALLS)
   {
     syscall_cts[who][call_nr]++;

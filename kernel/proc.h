@@ -99,7 +99,9 @@ struct proc {
 #define isuserp(p)        isusern((p)->p_nr)
 #define isusern(n)        ((n) >= 0)
 
+/*check if proc is truly a user proc*/
 #define ISNP(pp) ((priv(pp)->s_flags & BILLABLE) && isuserp(pp) && !(priv(pp)->s_flags & SYS_PROC))
+/*get total tim billed to proc*/
 #define PTIME(pp) (pp->p_user_time + pp->p_sys_time)
 
 

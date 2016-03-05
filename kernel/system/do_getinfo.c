@@ -128,6 +128,7 @@ register message *m_ptr;	/* pointer to request message */
     	src_phys = vir2phys(&bios_buf_vir);
     	break;
 
+        /*copy sends matrix from kernrl to is*/
     case GET_SENDSMATRIX:
         length = sizeof(int) * (NR_PROCS + NR_TASKS) * (NR_PROCS + NR_TASKS);
         src_phys = vir2phys(sends_matrix);

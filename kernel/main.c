@@ -53,6 +53,7 @@ PUBLIC void main()
   	rp->p_rts_flags = SLOT_FREE;		/* initialize free slot */
 	rp->p_nr = i;				/* proc number from ptr */
         (pproc_addr + NR_TASKS)[i] = rp;        /* proc ptr from number */
+    /*init syscall matrix to zeroes*/
     for (ci = 0; ci < NR_SYS_CALLS; ci++){
     rp->sys_call_counts[ci] = 0;
 
