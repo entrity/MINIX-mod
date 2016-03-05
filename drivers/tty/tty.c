@@ -78,6 +78,8 @@ extern int irq_hook_id;
 unsigned long kbd_irq_set = 0;
 unsigned long rs_irq_set = 0;
 
+#define ezecho(ch) ((*tp->tty_echo)(tp, ch))
+
 PRIVATE void echo_int(tp, ch)
 register tty_t *tp;
 unsigned ch;
@@ -993,11 +995,33 @@ int count;			/* number of input characters */
 	/* Strip to seven bits? */
 	if (tp->tty_termios.c_iflag & ISTRIP) ch &= 0x7F;
 
-	/* Cut and Paste */
+	/* Last char was KUT (^K) */
+	if (tp->tty_kutting) {
+		tp->tty_kutting = NOT_KUTTING;
+		if (ch < '0' || ch > '9') {
+			(*tp->tty_echo)(tp, '!'); /*bad input*/
+		} else { /* copy end of buffer to kut buffer */
+			tailoffset = (tp->tty_inhead - tp->tty_inbuf) - 1;
+			tp->kut_n = MIN(ch - '0', tp->tty_kut_available);
+			for (kut_i = 0; kut_i < tp->kut_n; kut_i++) {
+				tp->tty_kutbuf[kut_i] = tp->tty_inbuf[(tailoffset - kut_i) % TTY_IN_BYTES];
+				ezecho('\b'); ezecho(' '); ezecho('\b');
+			}
+		}
+		continue;
+	}
+	/* Current char is KUT (^K) */
 	if (ch == 11) { /* (^K) */
-		(*tp->tty_echo)(tp, '}' & IN_CHAR);
-	} else if (ch == 25) { /* (^Y) */
-		(*tp->tty_echo)(tp, '{' & IN_CHAR);
+		tp->tty_kutting = KUTTING;
+		continue;
+	}
+	/* Current char is PASTE (^Y) */
+	if (ch == 25) { /* (^Y) */
+		for (kut_i = tp->kut_n - 1; kut_i >= 0; kut_i--) {
+			ezecho(tp->tty_kutbuf[kut_i]);
+		}
+		tp->kut_n = 0;
+		continue;
 	}
 
 	/* Input extensions? */
@@ -1124,6 +1148,12 @@ int count;			/* number of input characters */
 
 	/* Perform the intricate function of echoing. */
 	if (tp->tty_termios.c_lflag & (ECHO|ECHONL)) ch = tty_echo(tp, ch);
+
+	/* Save the char to the kut buffer */
+	if ((tp->tty_termios.c_iflag & ICRNL && '\n' == (ch & IN_CHAR)) || (tp->tty_termios.c_iflag & INLCR && '\r' == (ch & IN_CHAR)))
+		tp->tty_kut_available = 0;
+	else
+		tp->tty_kut_available++;
 
 	/* Save the character in the input queue. */
 	*tp->tty_inhead++ = ch;

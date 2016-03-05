@@ -20,6 +20,8 @@
 #define O_NOCTTY       00400	/* from <fcntl.h>, or cc will choke */
 #define O_NONBLOCK     04000
 
+#define KUT_BUFLEN  10
+
 struct tty;
 typedef _PROTOTYPE( int (*devfun_t), (struct tty *tp, int try_only) );
 typedef _PROTOTYPE( void (*devfunarg_t), (struct tty *tp, int c) );
@@ -87,8 +89,10 @@ typedef struct tty {
 
   u16_t tty_inbuf[TTY_IN_BYTES];/* tty input buffer */
 
-  u16_t tty_kut_buffer[10]; /* input that has been cut */
+  u16_t tty_kutbuf[KUT_BUFLEN]; /* input that has been cut */
   int kut_n;
+  int tty_kut_available;
+
 } tty_t;
 
 /* Memory allocated in tty.c, so extern here. */
