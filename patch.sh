@@ -5,8 +5,11 @@ OUTDIR=./floppy/floppy
 PATCH_SCRIPT="$OUTDIR/patch.sh"
 export INITIAL_COMMIT=bc9bcff4c56599645728fa4da9895846eeb37301
 ct=0
-echo > $PATCH_SCRIPT
+
+./mount.sh
+
 mkdir -p $OUTDIR
+echo > $PATCH_SCRIPT
 
 find "$OUTDIR" -name \*.src -exec rm {} \;
 
@@ -17,5 +20,7 @@ for file in `git diff --name-only $INITIAL_COMMIT -- kernel include boot command
 	echo "cp '$tempname' '/usr/src/$file'" >> "$PATCH_SCRIPT"
 done
 
-rm -rf $OUTDIR/.Trash*
-rm -rf $OUTDIR/../.Trash*
+find floppy -name '.Trash*' -exec rm -r {} \;
+
+sudo umount floppy
+

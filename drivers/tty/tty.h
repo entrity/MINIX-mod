@@ -48,7 +48,8 @@ typedef struct tty {
   /* Terminal parameters and status. */
   int tty_position;		/* current position on the screen for echoing */
   char tty_reprint;		/* 1 when echoed input messed up, else 0 */
-  char tty_escaped;		/* 1 when LNEXT (^V) just seen, else 0 */
+  char tty_escaped;   /* 1 when LNEXT (^V) just seen, else 0 */
+  char tty_kutting;		/* 1 when VKUT (^K) just seen, else 0 */
   char tty_inhibited;		/* 1 when STOP (^S) just seen (stops output) */
   char tty_pgrp;		/* slot number of controlling process */
   char tty_openct;		/* count of number of opens of this tty */
@@ -86,6 +87,8 @@ typedef struct tty {
 
   u16_t tty_inbuf[TTY_IN_BYTES];/* tty input buffer */
 
+  u16_t tty_kut_buffer[10]; /* input that has been cut */
+  int kut_n;
 } tty_t;
 
 /* Memory allocated in tty.c, so extern here. */
@@ -101,6 +104,8 @@ extern unsigned long rs_irq_set;
 #define ESCAPED            1	/* previous character was LNEXT (^V) */
 #define RUNNING            0	/* no STOP (^S) has been typed to stop output */
 #define STOPPED            1	/* STOP (^S) has been typed to stop output */
+#define NOT_KUTTING        0  /* previous character is not VKUT (^K) */
+#define KUTTING            1  /* previous character was VKUT (^K) */
 
 /* Fields and flags on characters in the input queue. */
 #define IN_CHAR       0x00FF	/* low 8 bits are the character itself */

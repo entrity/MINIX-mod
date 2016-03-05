@@ -970,6 +970,7 @@ int count;			/* number of input characters */
  */
 
   int ch, sig, ct;
+  int tailoffset, kut_i;
   int timeset = FALSE;
   static unsigned char csize_mask[] = { 0x1F, 0x3F, 0x7F, 0xFF };
 
@@ -989,6 +990,21 @@ int count;			/* number of input characters */
 			ch |= IN_ESC;	/* protect character */
 		}
 
+		if (tp->tty_kutting) {
+			tp->tty_kutting = NOT_KUTTING;
+			if (ch < '0' || ch > '9') {
+				rawecho(tp, '\232'); /*bad input*/
+			} else {
+				tailoffset = (tp->tty_intail - tp->tty_inbuf) / sizeof(u16_t);
+				tp->kut_n = MIN(ch - '0', tp->tty_incount);
+				for (kut_i = 0; kut_i < tp->kut_n; ++kut_i) {
+					tp->tty_kut_buffer[kut_i] = tp->tty_inbuf[ (tailoffset - kut_i) % TTY_IN_BYTES ];
+					rawecho(tp, '\b');
+				}
+			}
+			continue;
+		}
+
 		/* LNEXT (^V) to escape the next character? */
 		if (ch == tp->tty_termios.c_cc[VLNEXT]) {
 			tp->tty_escaped = ESCAPED;
@@ -1000,6 +1016,15 @@ int count;			/* number of input characters */
 		/* REPRINT (^R) to reprint echoed characters? */
 		if (ch == tp->tty_termios.c_cc[VREPRINT]) {
 			reprint(tp);
+			continue;
+		}
+
+		/* Current char is kut (^K) */
+		if (ch == tp->tty_termios.c_cc[VKUT])
+		{
+			tp->tty_kutting = KUTTING;
+			rawecho(tp, '\252');
+			rawecho(tp, '\b');
 			continue;
 		}
 	}

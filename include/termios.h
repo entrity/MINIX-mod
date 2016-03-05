@@ -7,7 +7,7 @@ typedef unsigned short tcflag_t;
 typedef unsigned char cc_t;
 typedef unsigned int speed_t;
 
-#define NCCS		   20	/* size of cc_c array, some extra space
+#define NCCS		   21	/* size of cc_c array, some extra space
 				 * for extensions. */
 
 /* Primary terminal control structure. POSIX Table 7-1. */
@@ -160,6 +160,8 @@ _PROTOTYPE( int tcsetattr, \
 #define VREPRINT	  11	/* cc_c[VREPRINT] (^R) */
 #define VLNEXT            12    /* cc_c[VLNEXT] (^V) */
 #define VDISCARD          13    /* cc_c[VDISCARD] (^O) */
+#define VKUT	          14    /* cc_c[VKUT] (^K) */
+
 
 /* Extensions to baud rate settings. */
 #define B57600		0x0100	/* 57600 baud */
@@ -176,6 +178,7 @@ _PROTOTYPE( int tcsetattr, \
 #define TEOF_DEF	'\4'	/* ^D */
 #define TEOL_DEF	_POSIX_VDISABLE
 #define TERASE_DEF	'\10'	/* ^H */
+#define TKUT_DEF	'\28'	/* ^H */
 #define TINTR_DEF	'\3'	/* ^C */
 #define TKILL_DEF	'\25'	/* ^U */
 #define TMIN_DEF	1

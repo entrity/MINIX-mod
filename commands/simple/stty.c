@@ -55,6 +55,9 @@
 #ifndef TERASE_DEF
 #define TERASE_DEF	'\10'	/* ^H */
 #endif
+#ifndef TKUT_DEF
+#define TKUT_DEF	'\28'	/* ^K */
+#endif
 #ifndef TINTR_DEF
 #define TINTR_DEF	'\177'	/* ^? */
 #endif
