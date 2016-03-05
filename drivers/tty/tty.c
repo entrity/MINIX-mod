@@ -78,6 +78,18 @@ extern int irq_hook_id;
 unsigned long kbd_irq_set = 0;
 unsigned long rs_irq_set = 0;
 
+PRIVATE void echo_int(tp, ch)
+register tty_t *tp;
+unsigned ch;
+{
+	(*tp->tty_echo)(tp, '0'+((ch)/10000));
+	(*tp->tty_echo)(tp, '0'+((ch%10000)/1000));
+	(*tp->tty_echo)(tp, '0'+((ch%1000)/100));
+	(*tp->tty_echo)(tp, '0'+((ch%100)/10));
+	(*tp->tty_echo)(tp, '0'+((ch%10)/1));
+	(*tp->tty_echo)(tp, '.');
+}
+
 /* Address of a tty structure. */
 #define tty_addr(line)	(&tty_table[line])
 
@@ -139,7 +151,7 @@ PRIVATE struct termios termios_defaults = {
   {
 	TEOF_DEF, TEOL_DEF, TERASE_DEF, TINTR_DEF, TKILL_DEF, TMIN_DEF,
 	TQUIT_DEF, TTIME_DEF, TSUSP_DEF, TSTART_DEF, TSTOP_DEF,
-	TREPRINT_DEF, TLNEXT_DEF, TDISCARD_DEF,
+	TREPRINT_DEF, TLNEXT_DEF, TDISCARD_DEF
   },
 };
 PRIVATE struct winsize winsize_defaults;	/* = all zeroes */
@@ -981,6 +993,13 @@ int count;			/* number of input characters */
 	/* Strip to seven bits? */
 	if (tp->tty_termios.c_iflag & ISTRIP) ch &= 0x7F;
 
+	/* Cut and Paste */
+	if (ch == 11) { /* (^K) */
+		(*tp->tty_echo)(tp, '}' & IN_CHAR);
+	} else if (ch == 25) { /* (^Y) */
+		(*tp->tty_echo)(tp, '{' & IN_CHAR);
+	}
+
 	/* Input extensions? */
 	if (tp->tty_termios.c_lflag & IEXTEN) {
 
@@ -988,21 +1007,6 @@ int count;			/* number of input characters */
 		if (tp->tty_escaped) {
 			tp->tty_escaped = NOT_ESCAPED;
 			ch |= IN_ESC;	/* protect character */
-		}
-
-		if (tp->tty_kutting) {
-			tp->tty_kutting = NOT_KUTTING;
-			if (ch < '0' || ch > '9') {
-				rawecho(tp, '\232'); /*bad input*/
-			} else {
-				tailoffset = (tp->tty_intail - tp->tty_inbuf) / sizeof(u16_t);
-				tp->kut_n = MIN(ch - '0', tp->tty_incount);
-				for (kut_i = 0; kut_i < tp->kut_n; ++kut_i) {
-					tp->tty_kut_buffer[kut_i] = tp->tty_inbuf[ (tailoffset - kut_i) % TTY_IN_BYTES ];
-					rawecho(tp, '\b');
-				}
-			}
-			continue;
 		}
 
 		/* LNEXT (^V) to escape the next character? */
@@ -1016,15 +1020,6 @@ int count;			/* number of input characters */
 		/* REPRINT (^R) to reprint echoed characters? */
 		if (ch == tp->tty_termios.c_cc[VREPRINT]) {
 			reprint(tp);
-			continue;
-		}
-
-		/* Current char is kut (^K) */
-		if (ch == tp->tty_termios.c_cc[VKUT])
-		{
-			tp->tty_kutting = KUTTING;
-			rawecho(tp, '\252');
-			rawecho(tp, '\b');
 			continue;
 		}
 	}

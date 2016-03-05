@@ -7,7 +7,7 @@ typedef unsigned short tcflag_t;
 typedef unsigned char cc_t;
 typedef unsigned int speed_t;
 
-#define NCCS		   21	/* size of cc_c array, some extra space
+#define NCCS		   20	/* size of cc_c array, some extra space
 				 * for extensions. */
 
 /* Primary terminal control structure. POSIX Table 7-1. */
@@ -160,7 +160,6 @@ _PROTOTYPE( int tcsetattr, \
 #define VREPRINT	  11	/* cc_c[VREPRINT] (^R) */
 #define VLNEXT            12    /* cc_c[VLNEXT] (^V) */
 #define VDISCARD          13    /* cc_c[VDISCARD] (^O) */
-#define VKUT	          14    /* cc_c[VKUT] (^K) */
 
 
 /* Extensions to baud rate settings. */
@@ -178,7 +177,6 @@ _PROTOTYPE( int tcsetattr, \
 #define TEOF_DEF	'\4'	/* ^D */
 #define TEOL_DEF	_POSIX_VDISABLE
 #define TERASE_DEF	'\10'	/* ^H */
-#define TKUT_DEF	'\28'	/* ^H */
 #define TINTR_DEF	'\3'	/* ^C */
 #define TKILL_DEF	'\25'	/* ^U */
 #define TMIN_DEF	1
@@ -190,6 +188,8 @@ _PROTOTYPE( int tcsetattr, \
 #define	TREPRINT_DEF	'\22'	/* ^R */
 #define	TLNEXT_DEF	'\26'	/* ^V */
 #define	TDISCARD_DEF	'\17'	/* ^O */
+#define TKUT_DEF	4107	/* ^K */
+#define TPASTE_DEF	4121	/* ^Y */
 
 /* Window size. This information is stored in the TTY driver but not used.
  * This can be used for screen based applications in a window environment. 
