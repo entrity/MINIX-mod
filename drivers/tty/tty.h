@@ -91,7 +91,7 @@ typedef struct tty {
 
   u16_t tty_kutbuf[KUT_BUFLEN]; /* input that has been cut */
   int kut_n;
-  int tty_kut_available;
+  u16_t *tty_kut_limit;    /* pointer to before start of longest allowed cut */
 
 } tty_t;
 
