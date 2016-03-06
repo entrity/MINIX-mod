@@ -153,7 +153,7 @@ PRIVATE struct termios termios_defaults = {
   {
 	TEOF_DEF, TEOL_DEF, TERASE_DEF, TINTR_DEF, TKILL_DEF, TMIN_DEF,
 	TQUIT_DEF, TTIME_DEF, TSUSP_DEF, TSTART_DEF, TSTOP_DEF,
-	TREPRINT_DEF, TLNEXT_DEF, TDISCARD_DEF
+	TREPRINT_DEF, TLNEXT_DEF, TDISCARD_DEF,
   },
 };
 PRIVATE struct winsize winsize_defaults;	/* = all zeroes */
