@@ -999,13 +999,19 @@ int count;			/* number of input characters */
 	if (tp->tty_kutting) {
 		tp->tty_kutting = NOT_KUTTING;
 		if (ch < '0' || ch > '9') {
-			(*tp->tty_echo)(tp, '!'); /*bad input*/
+			ezecho('!'); /*bad input*/
+			ezecho('\b'); /*bad input*/
 		} else { /* copy end of buffer to kut buffer */
 			tailoffset = (tp->tty_inhead - tp->tty_inbuf) - 1;
 			tp->kut_n = MIN(ch - '0', tp->tty_kut_available);
 			for (kut_i = 0; kut_i < tp->kut_n; kut_i++) {
 				tp->tty_kutbuf[kut_i] = tp->tty_inbuf[(tailoffset - kut_i) % TTY_IN_BYTES];
 				ezecho('\b'); ezecho(' '); ezecho('\b');
+				/* Save the character in the input queue. */
+				*tp->tty_inhead++ = '\b';
+				if (tp->tty_inhead == bufend(tp->tty_inbuf))
+					tp->tty_inhead = tp->tty_inbuf;
+				tp->tty_incount++;
 			}
 		}
 		continue;
@@ -1018,9 +1024,14 @@ int count;			/* number of input characters */
 	/* Current char is PASTE (^Y) */
 	if (ch == 25) { /* (^Y) */
 		for (kut_i = tp->kut_n - 1; kut_i >= 0; kut_i--) {
-			ezecho(tp->tty_kutbuf[kut_i]);
+			ch = tp->tty_kutbuf[kut_i];
+			ch |= IN_EOT;
+			*tp->tty_inhead++ = ch;
+			if (tp->tty_inhead == bufend(tp->tty_inbuf))
+				tp->tty_inhead = tp->tty_inbuf;
+			tp->tty_incount++;
+			tp->tty_eotct++;
 		}
-		tp->kut_n = 0;
 		continue;
 	}
 
@@ -1149,7 +1160,7 @@ int count;			/* number of input characters */
 	/* Perform the intricate function of echoing. */
 	if (tp->tty_termios.c_lflag & (ECHO|ECHONL)) ch = tty_echo(tp, ch);
 
-	/* Save the char to the kut buffer */
+	/* update available kut ct */
 	if ((tp->tty_termios.c_iflag & ICRNL && '\n' == (ch & IN_CHAR)) || (tp->tty_termios.c_iflag & INLCR && '\r' == (ch & IN_CHAR)))
 		tp->tty_kut_available = 0;
 	else
