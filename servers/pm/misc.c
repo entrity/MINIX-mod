@@ -20,6 +20,8 @@
 #include "mproc.h"
 #include "param.h"
 
+struct hole holes[NR_HOLES];
+
 /*===========================================================================*
  *				do_allocmem				     *
  *===========================================================================*/
@@ -59,6 +61,8 @@ PUBLIC int do_getsysinfo()
   struct kinfo kinfo;
   size_t len;
   int s;
+  int i;
+  struct hole *hp;
 
   switch(m_in.info_what) {
   case SI_KINFO:			/* kernel info is obtained via PM */
@@ -75,6 +79,19 @@ PUBLIC int do_getsysinfo()
         src_addr = (vir_bytes) mproc;
         len = sizeof(struct mproc) * NR_PROCS;
         break;
+  case MARKHAM_A:
+    i = 0;
+    if (!hole_head)
+      holes[0].h_len = NULL;
+    for (hp = hole_head; hp; hp = hp->h_next) {
+      holes[i] = *hp;
+      i++;
+    }
+    /*test*/ holes[0].h_next = 0xdeadbeef;
+    /*test*/ holes[1].h_next = 0xbabecafe;
+    src_addr = (vir_bytes) &holes;
+    len = sizeof(holes);
+    break;
   default:
   	return(EINVAL);
   }

@@ -25,16 +25,11 @@
 #include "../../kernel/config.h"
 #include "../../kernel/type.h"
 
-#define NR_HOLES  (2*NR_PROCS)	/* max # entries in hole table */
 #define NIL_HOLE (struct hole *) 0
 
-PRIVATE struct hole {
-  struct hole *h_next;		/* pointer to next entry on the list */
-  phys_clicks h_base;		/* where does the hole begin? */
-  phys_clicks h_len;		/* how big is the hole? */
-} hole[NR_HOLES];
+PRIVATE struct hole hole[NR_HOLES];
 
-PRIVATE struct hole *hole_head;	/* pointer to first hole */
+PUBLIC struct hole *hole_head;	/* pointer to first hole */
 PRIVATE struct hole *free_slots;/* ptr to list of unused table slots */
 #if ENABLE_SWAP
 PRIVATE int swap_fd = -1;	/* file descriptor of open swap file/device */
@@ -75,7 +70,7 @@ phys_clicks clicks;		/* amount of memory requested */
 	hp = hole_head;
 	while (hp != NIL_HOLE && hp->h_base < swap_base) {
 		if (hp->h_len >= clicks) {
-			/* We found a hole that is big enough.  Use it. */
+			/* We found a hole that is big enough.  Compare it to previously discovered hole. */
 			old_base = hp->h_base;	/* remember where it started */
 			hp->h_base += clicks;	/* bite a piece off */
 			hp->h_len -= clicks;	/* ditto */

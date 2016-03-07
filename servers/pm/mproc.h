@@ -73,3 +73,12 @@ EXTERN struct mproc {
 
 #define NIL_MPROC ((struct mproc *) 0)
 
+#define NR_HOLES  (2*NR_PROCS)  /* max # entries in hole table */
+
+PUBLIC struct hole {
+  struct hole *h_next;    /* pointer to next entry on the list */
+  phys_clicks h_base;   /* where does the hole begin? */
+  phys_clicks h_len;    /* how big is the hole? */
+};
+
+extern PUBLIC struct hole *hole_head;  /* pointer to first hole */
