@@ -25,7 +25,7 @@ PUBLIC void memlist_dmp()
   mess.info_where = &list;
   sendrec(PM_PROC_NR, &mess);
   #ifdef MARKHAMDEBUG
-  printf("got it!\n%x %x\n", list[0].h_next, list[1].h_next);
+  printf("got it! %x %x\n", list[0].h_next, list[1].h_next);
   #endif
   for (i = 0; i < NR_HOLES; i++) {
     if (!list[i].h_len) continue;

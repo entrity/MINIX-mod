@@ -62,29 +62,34 @@ phys_clicks clicks;		/* amount of memory requested */
  * always on a click boundary.  This procedure is called when memory is
  * needed for FORK or EXEC.  Swap other processes out if needed.
  */
-  register struct hole *hp, *prev_ptr;
+  register struct hole *hp, *prev_ptr, *biggest_hp, *biggest_hp_prev_ptr;
   phys_clicks old_base;
 
   do {
-        prev_ptr = NIL_HOLE;
-	hp = hole_head;
-	while (hp != NIL_HOLE && hp->h_base < swap_base) {
-		if (hp->h_len >= clicks) {
-			/* We found a hole that is big enough.  Compare it to previously discovered hole. */
-			old_base = hp->h_base;	/* remember where it started */
-			hp->h_base += clicks;	/* bite a piece off */
-			hp->h_len -= clicks;	/* ditto */
+    biggest_hp = NULL;
+    prev_ptr = NIL_HOLE;
+    hp = hole_head;
+    while (hp != NIL_HOLE && hp->h_base < swap_base) {
+      if (hp->h_len >= clicks && (biggest_hp == NIL_HOLE || hp->h_len > biggest_hp->h_len)) {
+        /* We found a hole that is big enough and bigger than a previously discovered hole. */
+        biggest_hp = hp;
+        biggest_hp_prev_ptr = prev_ptr;
+      }
+      prev_ptr = hp;
+      hp = hp->h_next;
+    }
+    if (biggest_hp) {
+      hp = biggest_hp;
+      old_base = hp->h_base; /* remember where it started */
+      hp->h_base += clicks;  /* bite a piece off */
+      hp->h_len -= clicks; /* ditto */
 
-			/* Delete the hole if used up completely. */
-			if (hp->h_len == 0) del_slot(prev_ptr, hp);
+      /* Delete the hole if used up completely. */
+      if (hp->h_len == 0) del_slot(prev_ptr, hp);
 
-			/* Return the start address of the acquired block. */
-			return(old_base);
-		}
-
-		prev_ptr = hp;
-		hp = hp->h_next;
-	}
+      /* Return the start address of the acquired block. */
+      return(old_base);
+    }
   } while (swap_out());		/* try to swap some other process out */
   return(NO_MEM);
 }
