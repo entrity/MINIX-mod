@@ -13,11 +13,11 @@
 
 PUBLIC struct mproc mproc[NR_PROCS];
 
-#define MARKHAMDEBUG
 #define info_what  m1_i1
 #define info_where m1_p1
 PUBLIC void memlist_dmp()
 {
+  int i;
   struct hole list[NR_HOLES];
   message mess;
   mess.m_type = GETSYSINFO;
@@ -27,6 +27,12 @@ PUBLIC void memlist_dmp()
   #ifdef MARKHAMDEBUG
   printf("got it!\n%x %x\n", list[0].h_next, list[1].h_next);
   #endif
+  for (i = 0; i < NR_HOLES; i++) {
+    if (!list[i].h_len) continue;
+    printf("| %d %d %d |", i, list[i].h_base, list[i].h_len);
+    if (!list[i].h_next) break;
+  }
+  printf("\n");
 }
 #undef info_what
 #undef info_where
