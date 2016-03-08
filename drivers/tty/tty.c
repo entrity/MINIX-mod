@@ -984,7 +984,7 @@ int count;			/* number of input characters */
  */
 
   int ch, sig, ct;
-  int kut_i, bs_ct;
+  int kut_i, bs_ct, boe;
   u16_t *tty_kut_p;
   int timeset = FALSE;
   static unsigned char csize_mask[] = { 0x1F, 0x3F, 0x7F, 0xFF };
@@ -1004,54 +1004,75 @@ int count;			/* number of input characters */
 			ezecho('\b'); /*bad input*/
 		} else { /* copy end of buffer to kut buffer */
 			tp->kut_n = 0; /* number of chars cut so far */
-			bs_ct = 0; /* backspace count */
-			tty_kut_p = tp->tty_inhead - 1;
 			kut_i = ch - '0';
-			#ifdef MARKHAM_DEBUG
-			printf("-h%x-", tp->tty_inhead);
-			printf("-s%x-", tp->tty_kut_limit);
-			printf("-p%x-", tty_kut_p);
-			printf("-t%x-", tp->tty_intail);
-			printf("-k%d-", tp->kut_n);
-			#endif
-			while (kut_i) {
-				if ( tty_kut_p == tp->tty_kut_limit ) {
+			if (tp->tty_termios.c_lflag & ICANON) { /* COOKED mode : copy end of buffer to kut buffer */
+				while (kut_i) {
+					boe = back_over(tp);
+					if (!(tp->tty_termios.c_lflag & ECHOE)) {
+						(void) tty_echo(tp, ch);
+					}
+					/* save char to kutbuf */
+					tp->tty_kutbuf[tp->kut_n] = *tp->tty_inhead;
 					#ifdef MARKHAM_DEBUG
-					printf("-r.s.-");
+					ezecho('.');
+					ezecho(*tp->tty_inhead & IN_CHAR);
+					ezecho('+');
+					ezecho(tp->tty_kutbuf[tp->kut_n] & IN_CHAR);
+					#else
 					#endif
-					break; /* go no further back than allowed */
-				} else if ( *tty_kut_p == '\b' ) {
-					bs_ct ++;
-					tty_kut_p--;
-					continue; /* skip backspaces */
-				} else if (bs_ct) {
-					bs_ct--;
-					tty_kut_p--;
-					continue; /* apply skipped backspace */
+					tp->kut_n++;
+					kut_i--;
+					if (!boe) break;
 				}
-				/* echo */
-				#ifndef MARKHAM_DEBUG
-				ezecho('\b'); ezecho(' '); ezecho('\b');
+			} else { /* RAW mode : copy end of buffer to kut buffer */
+				bs_ct = 0; /* backspace count */
+				tty_kut_p = tp->tty_inhead - 1;
+				#ifdef MARKHAM_DEBUG
+				printf("-h%x-", tp->tty_inhead);
+				printf("-s%x-", tp->tty_kut_limit);
+				printf("-p%x-", tty_kut_p);
+				printf("-t%x-", tp->tty_intail);
+				printf("-k%d-", tp->kut_n);
 				#endif
-				/* Save the character in kutbuf */
-				tp->tty_kutbuf[tp->kut_n] = *tty_kut_p;
-				tp->kut_n++;
-				tty_kut_p--;
-				if ( tty_kut_p == tp->tty_inhead )
-					tty_kut_p = bufend(tp->tty_inbuf) - 1;
-				/* Save the character in the input queue. */
-				*tp->tty_inhead++ = '\b';
-				if (tp->tty_inhead == bufend(tp->tty_inbuf))
-					tp->tty_inhead = tp->tty_inbuf;
-				tp->tty_incount++;
-				/* decrement remaining chars desired */
-				kut_i--;
+				while (kut_i) {
+					if ( tty_kut_p == tp->tty_kut_limit ) {
+						#ifdef MARKHAM_DEBUG
+						printf("-r.s.-");
+						#endif
+						break; /* go no further back than allowed */
+					} else if ( *tty_kut_p == '\b' ) {
+						bs_ct ++;
+						tty_kut_p--;
+						continue; /* skip backspaces */
+					} else if (bs_ct) {
+						bs_ct--;
+						tty_kut_p--;
+						continue; /* apply skipped backspace */
+					}
+					/* echo */
+					#ifndef MARKHAM_DEBUG
+					ezecho('\b'); ezecho(' '); ezecho('\b');
+					#endif
+					/* Save the character in kutbuf */
+					tp->tty_kutbuf[tp->kut_n] = *tty_kut_p;
+					tp->kut_n++;
+					tty_kut_p--;
+					if ( tty_kut_p == tp->tty_inhead )
+						tty_kut_p = bufend(tp->tty_inbuf) - 1;
+					/* Save the character in the input queue. */
+					*tp->tty_inhead++ = '\b';
+					if (tp->tty_inhead == bufend(tp->tty_inbuf))
+						tp->tty_inhead = tp->tty_inbuf;
+					tp->tty_incount++;
+					/* decrement remaining chars desired */
+					kut_i--;
+				}
+				#ifdef MARKHAM_DEBUG
+				printf("-p%x-", tty_kut_p);
+				for (kut_i=0; kut_i< tp->kut_n; kut_i++)
+					printf("%d,", tp->tty_kutbuf[kut_i] & IN_CHAR);
+				#endif
 			}
-			#ifdef MARKHAM_DEBUG
-			printf("-p%x-", tty_kut_p);
-			for (kut_i=0; kut_i< tp->kut_n; kut_i++)
-				printf("%d,", tp->tty_kutbuf[kut_i] & IN_CHAR);
-			#endif
 		}
 		continue;
 	}
@@ -1064,13 +1085,20 @@ int count;			/* number of input characters */
 	if (ch == 25) { /* (^Y) */
 		for (kut_i = tp->kut_n - 1; kut_i >= 0; kut_i--) {
 			ch = tp->tty_kutbuf[kut_i];
-			ch |= IN_EOT;
+			if (!(tp->tty_termios.c_lflag & ICANON)) {
+				ch |= IN_EOT;
+				tp->tty_eotct++;
+			} else {
+				ezecho(ch & IN_CHAR);
+			}
 			*tp->tty_inhead++ = ch;
 			if (tp->tty_inhead == bufend(tp->tty_inbuf))
 				tp->tty_inhead = tp->tty_inbuf;
 			tp->tty_incount++;
-			tp->tty_eotct++;
+			/* Try to finish input if the queue threatens to overflow. */
+			if (tp->tty_incount == buflen(tp->tty_inbuf)) in_transfer(tp);
 		}
+		tp->tty_reprint = FALSE;
 		continue;
 	}
 
