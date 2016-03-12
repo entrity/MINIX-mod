@@ -1008,6 +1008,7 @@ int count;			/* number of input characters */
 			if (tp->tty_termios.c_lflag & ICANON) { /* COOKED mode : copy end of buffer to kut buffer */
 				while (kut_i) {
 					boe = back_over(tp);
+					if (!boe) break;
 					if (!(tp->tty_termios.c_lflag & ECHOE)) {
 						(void) tty_echo(tp, ch);
 					}
@@ -1022,7 +1023,6 @@ int count;			/* number of input characters */
 					#endif
 					tp->kut_n++;
 					kut_i--;
-					if (!boe) break;
 				}
 			} else { /* RAW mode : copy end of buffer to kut buffer */
 				bs_ct = 0; /* backspace count */
@@ -1040,7 +1040,7 @@ int count;			/* number of input characters */
 						printf("-r.s.-");
 						#endif
 						break; /* go no further back than allowed */
-					} else if ( *tty_kut_p == '\b' ) {
+					} else if ( (*tty_kut_p & IN_CHAR) == '\b' || (*tty_kut_p & IN_CHAR) == 127 ) {
 						bs_ct ++;
 						tty_kut_p--;
 						continue; /* skip backspaces */
@@ -1634,7 +1634,7 @@ PRIVATE void tty_init()
 
   	tmr_inittimer(&tp->tty_tmr);
 
-  	tp->tty_intail = tp->tty_inhead = tp->tty_inbuf;
+  	tp->tty_kut_limit = tp->tty_intail = tp->tty_inhead = tp->tty_inbuf;
   	tp->tty_min = 1;
   	tp->tty_termios = termios_defaults;
   	tp->tty_icancel = tp->tty_ocancel = tp->tty_ioctl = tp->tty_close =
